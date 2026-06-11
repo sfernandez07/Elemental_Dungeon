@@ -2,14 +2,22 @@
 #include "map.h"
 #include "score.h"
 #include "player.h"
+#include "ghost.h"
 
 /* Deltas de tile: RIGHT=0, LEFT=1, UP=2, DOWN=3 */
 static const signed char DX[4] = {  1, -1,  0,  0 };
 static const signed char DY[4] = {  0,  0, -1,  1 };
 
-/* Tiles CHR de sprites por dirección */
-static const unsigned char OPEN_TILE[4] = { 0x00, 0x02, 0x03, 0x04 };
-#define CLOSED_TILE 0x01
+/* Mapa DIR_* → bit de pad (para el truco de prioridad de Chase) */
+static const unsigned char DIR_TO_PAD[4] = {
+    PAD_RIGHT, PAD_LEFT, PAD_UP, PAD_DOWN
+};
+
+/* Sprites por dirección (RIGHT=0, LEFT=1, UP=2, DOWN=3).
+   LEFT usa el mismo tile que RIGHT con flip horizontal (attr 0x40). */
+static const unsigned char FRAME_A[4] = { 0x00, 0x00, 0x02, 0x04 };
+static const unsigned char FRAME_B[4] = { 0x01, 0x01, 0x03, 0x05 };
+static const unsigned char HFLIP[4]   = { 0x00, 0x40, 0x00, 0x00 };
 
 /* Señales para main() y obstacles.c */
 unsigned char dot_eaten  = 0;
@@ -21,35 +29,79 @@ unsigned char bomb_eaten = 0;
 static unsigned char can_move(unsigned char tx, unsigned char ty,
                                unsigned char dir)
 {
+    unsigned char t;
     signed char ntx = (signed char)tx + DX[dir];
     signed char nty = (signed char)ty + DY[dir];
     if (ntx < 0 || ntx >= MAP_COLS || nty < 0 || nty >= MAP_ROWS) return 0;
-    return map_state[(unsigned char)nty][(unsigned char)ntx] != TILE_WALL;
+    t = map_state[(unsigned char)nty][(unsigned char)ntx];
+    return (t != TILE_WALL && t != TILE_LAVA && t != TILE_VOLCANO);
 }
 
 /* ------------------------------------------------------------------ */
 
 void player_init(Player *p)
 {
-    p->px          = TX_TO_PX(PLAYER_START_TX);
-    p->py          = TY_TO_PY(PLAYER_START_TY);
-    p->dir         = DIR_LEFT;
-    p->next_dir    = DIR_LEFT;
-    p->move_cnt    = 0;
-    p->anim_frm    = 0;
-    p->anim_cnt    = 0;
-    p->power_timer = 0;
-    p->slow_cnt    = 0;
-    p->tele_lock   = 0;
+    p->px            = TX_TO_PX(PLAYER_START_TX);
+    p->py            = TY_TO_PY(PLAYER_START_TY);
+    p->dir           = DIR_LEFT;
+    p->next_dir      = DIR_LEFT;
+    p->move_cnt      = 0;
+    p->anim_frm      = 0;
+    p->anim_cnt      = 0;
+    p->power_timer   = 0;
+    p->slow_cnt      = 0;
+    p->tele_lock     = 0;
+    p->freeze_timer  = 0;
+    p->ctrl_rev_timer = 0;
 }
 
 /* ------------------------------------------------------------------ */
 
+/* Lee el pad (ya encuestado por pad_trigger en main.c) y actualiza
+   next_dir con el truco de prioridad de dirección de Chase:
+   la dirección actual se comprueba primero y se elimina del resto,
+   de modo que cualquier otra dirección pulsada simultáneamente la anula. */
+static void read_input(Player *p)
+{
+    unsigned char buttons = pad_state(0);   /* reutiliza el estado leído por pad_trigger */
+    unsigned char cur_bit;
+
+    /* Controles invertidos (trampa remolino) */
+    if (p->ctrl_rev_timer > 0) {
+        unsigned char swapped = 0;
+        p->ctrl_rev_timer--;
+        if (buttons & PAD_RIGHT) swapped |= PAD_LEFT;
+        if (buttons & PAD_LEFT)  swapped |= PAD_RIGHT;
+        if (buttons & PAD_UP)    swapped |= PAD_DOWN;
+        if (buttons & PAD_DOWN)  swapped |= PAD_UP;
+        buttons = swapped | (buttons & ~(PAD_RIGHT|PAD_LEFT|PAD_UP|PAD_DOWN));
+    }
+
+    /* Truco Chase: dirección actual tiene menor prioridad que las nuevas.
+       Se comprueba primero y se elimina para que las demás puedan ganar. */
+    cur_bit = (p->dir < 4) ? DIR_TO_PAD[p->dir] : 0;
+    if (cur_bit && (buttons & cur_bit)) {
+        buttons  &= ~cur_bit;       /* eliminar del resto de comprobaciones */
+        p->next_dir = p->dir;       /* mantener dirección actual por defecto */
+    }
+
+    /* Otras direcciones: cualquiera anula la actual */
+    if      (buttons & PAD_RIGHT) p->next_dir = DIR_RIGHT;
+    else if (buttons & PAD_LEFT)  p->next_dir = DIR_LEFT;
+    else if (buttons & PAD_UP)    p->next_dir = DIR_UP;
+    else if (buttons & PAD_DOWN)  p->next_dir = DIR_DOWN;
+}
+
 void player_update(Player *p)
 {
-    unsigned char buttons;
     unsigned char tx, ty;
     unsigned char eaten;
+
+    /* --- Congelación (árbol / burbuja) --- */
+    if (p->freeze_timer > 0) {
+        p->freeze_timer--;
+        return;   /* hardware ya leído por pad_trigger en main.c */
+    }
 
     /* --- Trampa de velocidad: omitir un frame de cada dos --- */
     tx = PX_TO_TX(p->px);
@@ -57,24 +109,15 @@ void player_update(Player *p)
     if (map_state[ty][tx] == TILE_SLOW_TRAP) {
         p->slow_cnt ^= 1;
         if (p->slow_cnt) {
-            /* Aun así leer el pad para no perder inputs */
-            buttons = pad_poll(0);
-            if      (buttons & PAD_RIGHT) p->next_dir = DIR_RIGHT;
-            else if (buttons & PAD_LEFT)  p->next_dir = DIR_LEFT;
-            else if (buttons & PAD_UP)    p->next_dir = DIR_UP;
-            else if (buttons & PAD_DOWN)  p->next_dir = DIR_DOWN;
+            read_input(p);   /* bufferizar dirección pero no mover */
             return;
         }
     } else {
-        p->slow_cnt = 0;   /* resetear al salir de la trampa */
+        p->slow_cnt = 0;
     }
 
-    /* --- Leer entrada --- */
-    buttons = pad_poll(0);
-    if      (buttons & PAD_RIGHT) p->next_dir = DIR_RIGHT;
-    else if (buttons & PAD_LEFT)  p->next_dir = DIR_LEFT;
-    else if (buttons & PAD_UP)    p->next_dir = DIR_UP;
-    else if (buttons & PAD_DOWN)  p->next_dir = DIR_DOWN;
+    /* --- Leer entrada (pad ya encuestado, sin releer hardware) --- */
+    read_input(p);
 
     /* --- Movimiento pixel a pixel --- */
     dot_eaten  = 0;
@@ -89,6 +132,11 @@ void player_update(Player *p)
         tx = PX_TO_TX(p->px);
         ty = PY_TO_TY(p->py);
 
+        /* Muerte por rayo */
+        if (map_state[ty][tx] == TILE_LIGHTNING) {
+            player_died = 1;
+        }
+
         /* Teletransportador */
         if (p->tele_lock == 0 && map_state[ty][tx] == TILE_TELEPORT) {
             if (tx == TELE_A_TX && ty == TELE_A_TY) {
@@ -100,7 +148,6 @@ void player_update(Player *p)
             }
             p->tele_lock = 16;
             p->move_cnt  = 0;
-            /* Recalcular tile tras el teletransporte */
             tx = PX_TO_TX(p->px);
             ty = PY_TO_TY(p->py);
         }
@@ -116,7 +163,7 @@ void player_update(Player *p)
             p->move_cnt = 7;
         }
 
-        /* Colisión con puntos, pellets y bomba */
+        /* Colisión con puntos, pellets, bomba y obstáculos de mapa */
         eaten = map_eat_dot(tx, ty);
         if (eaten == TILE_DOT) {
             score_add(DOT_PTS);
@@ -131,6 +178,14 @@ void player_update(Player *p)
             bomb_eaten = 1;
             dot_eaten  = 1;
             dot_addr   = NTADR_A(MAP_X_OFFSET + tx, MAP_Y_OFFSET + ty);
+        } else if (eaten == TILE_TREE || eaten == TILE_BUBBLE) {
+            p->freeze_timer = 60;
+            dot_eaten = 1;
+            dot_addr  = NTADR_A(MAP_X_OFFSET + tx, MAP_Y_OFFSET + ty);
+        } else if (eaten == TILE_WHIRLWIND) {
+            p->ctrl_rev_timer = 300;
+            dot_eaten = 1;
+            dot_addr  = NTADR_A(MAP_X_OFFSET + tx, MAP_Y_OFFSET + ty);
         }
     }
 
@@ -150,8 +205,7 @@ void player_update(Player *p)
 
 void player_draw(const Player *p)
 {
-    unsigned char tile;
     unsigned char dir_idx = (p->dir == DIR_NONE) ? DIR_RIGHT : p->dir;
-    tile = (p->anim_frm == 0) ? OPEN_TILE[dir_idx] : CLOSED_TILE;
-    oam_spr(p->px, p->py, tile, 0x00, 0);
+    unsigned char tile    = (p->anim_frm == 0) ? FRAME_A[dir_idx] : FRAME_B[dir_idx];
+    oam_spr(p->px, p->py, tile, HFLIP[dir_idx], 0);
 }

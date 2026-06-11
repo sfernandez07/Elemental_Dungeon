@@ -4,7 +4,10 @@
 
 ;v050517
 
+	.include "famitone2.s"
 
+	.importzp sp
+	.import popa, popax
 
 	.export _pal_all,_pal_bg,_pal_spr,_pal_col,_pal_clear
 	.export _pal_bright,_pal_spr_bright,_pal_bg_bright
@@ -1260,5 +1263,3 @@ palBrightTable8:
 	.byte $30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30
 	.byte $30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30
 	.byte $30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30,$30
-
-	.include "famitone2.s"

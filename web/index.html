@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elemental Dungeon — TFG</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      color: #aaa;
+    }
+
+    h1 {
+      margin-bottom: 14px;
+      font-size: 1.3rem;
+      letter-spacing: 6px;
+      color: #ffcc00;
+      text-transform: uppercase;
+    }
+
+    /* EmulatorJS renderiza dentro de este div */
+    #game {
+      width: 512px;
+      height: 480px;
+      background: #000;
+    }
+
+    .controls {
+      margin-top: 12px;
+      font-size: 0.72rem;
+      color: #666;
+      letter-spacing: 1px;
+    }
+
+    .controls span {
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Elemental Dungeon</h1>
+
+  <div id="game"></div>
+
+  <p class="controls">
+    <span>← → ↑ ↓</span> mover &nbsp;|&nbsp;
+    <span>Enter</span> Start &nbsp;|&nbsp;
+    <span>Shift</span> Select &nbsp;|&nbsp;
+    <span>Z</span> A &nbsp;|&nbsp;
+    <span>X</span> B
+  </p>
+
+  <script>
+    EJS_player     = "#game";
+    EJS_core       = "nes";
+    EJS_gameUrl    = "elemental_dungeon.nes";   // ROM en la misma carpeta que index.html
+    EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+    EJS_color      = "#ffcc00";
+    EJS_startOnLoaded = true;
+  </script>
+  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+
+</body>
+</html>

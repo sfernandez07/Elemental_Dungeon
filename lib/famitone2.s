@@ -13,6 +13,19 @@ FT_SFX_ENABLE   = 0   ; 0 = sin SFX por ahora
 FT_DPCM_ENABLE  = 0
 FT_PAL_SUPPORT  = 0
 
+; ---- Registros de hardware NES ----
+PPU_CTRL    = $2000
+PPU_MASK    = $2001
+PPU_STATUS  = $2002
+PPU_OAM_ADR = $2003
+PPU_OAM_DATA= $2004
+PPU_SCROLL  = $2005
+PPU_ADDR    = $2006
+PPU_DATA    = $2007
+PPU_OAM_DMA = $4014
+CTRL_PORT1  = $4016
+CTRL_PORT2  = $4017
+
 ; ---- Direcciones fijas de RAM ----
 ; El handler NMI de neslib hace: lda #>OAM_BUF → debe ser $02
 OAM_BUF = $0200   ; 256 bytes: buffer DMA de sprites
@@ -36,9 +49,16 @@ RLE_BYTE:         .res 1   ; último byte descomprimido
 
 SCROLL_X:         .res 1
 SCROLL_Y:         .res 1
+SCROLL_X1:        .res 1   ; scroll X para split (función split())
+SCRX:             .res 1   ; scroll X acumulado (función scroll())
+SCRY:             .res 1   ; scroll Y acumulado (función scroll())
 
-PPU_CTRL_VAR:     .res 1   ; copia del registro PPU_CTRL ($2000)
-PPU_MASK_VAR:     .res 1   ; copia del registro PPU_MASK ($2001)
+PPU_CTRL_VAR:     .res 1   ; copia de PPU_CTRL ($2000)
+PPU_CTRL_VAR1:    .res 1   ; copia de PPU_CTRL para split
+PPU_MASK_VAR:     .res 1   ; copia de PPU_MASK ($2001)
+
+PAL_BG_PTR:       .res 2   ; puntero a paleta de fondo activa
+PAL_SPR_PTR:      .res 2   ; puntero a paleta de sprites activa
 
 FRAME_CNT1:       .res 1   ; contador de frames (NTSC/PAL)
 FRAME_CNT2:       .res 1   ; contador de subframes PAL
@@ -66,6 +86,7 @@ NTSC_MODE:        .res 1   ; 0 = PAL, 1 = NTSC
 
 .segment "CODE"
 
+FamiToneUpdate:
 FamiToneMusicPlay:
 FamiToneMusicStop:
 FamiToneMusicPause:

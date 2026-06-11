@@ -4,16 +4,16 @@
 #include "player.h"
 
 /* Estados del fantasma */
-#define GHOST_NORMAL    0   /* persigue / patrulla, mata a Pac-Man */
-#define GHOST_SCARED    1   /* asustado, Pac-Man puede comerlo */
+#define GHOST_NORMAL    0   /* persigue / patrulla, mata al héroe */
+#define GHOST_SCARED    1   /* asustado, el héroe puede comerlo */
 #define GHOST_DEAD      2   /* muerto, respawn tras dead_timer frames */
 
 /* Tipos de comportamiento */
-#define GHOST_CHASER    0   /* greedy: reduce distancia Manhattan a Pac-Man */
+#define GHOST_CHASER    0   /* greedy: reduce distancia Manhattan al héroe */
 #define GHOST_PATROLLER 1   /* right-hand rule: sigue la pared derecha */
 
 #define GHOST_COUNT          4
-#define GHOST_DEAD_DURATION  180   /* ~3 s a 60 Hz */
+#define GHOST_DEAD_DURATION  240   /* ~4 s a 60 Hz */
 
 /* Puntos al comer un fantasma asustado */
 #define GHOST_EAT_PTS  200
@@ -34,15 +34,21 @@ typedef struct {
 /* Array global de todos los fantasmas */
 extern Ghost ghosts[GHOST_COUNT];
 
-/* Flag: 1 si un fantasma normal tocó a Pac-Man este frame */
-extern unsigned char pacman_died;
+/* Flag: 1 si un fantasma normal tocó al héroe este frame */
+extern unsigned char player_died;
+
+/* 1 cuando todos los puntos han sido comidos: enemigos se mueven al doble de velocidad */
+extern unsigned char ghost_rage;
 
 void          ghost_init_all(void);
 void          ghost_update_all(const Player *p);
 unsigned char ghost_draw_all(const Player *p, unsigned char sprid);
 
-/* Cambia todos los fantasmas NORMAL a SCARED y les invierte la dirección.
-   Llamar desde main.c cuando Pac-Man come un power pellet. */
+/* Cambia todos los fantasmas NORMAL a SCARED y les invierte la dirección. */
 void ghost_scare_all(void);
+
+/* Activa el modo rabia: los enemigos se mueven al doble de velocidad.
+   Llamar cuando se abra la puerta (todos los puntos comidos). */
+void ghost_rage_all(void);
 
 #endif

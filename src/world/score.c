@@ -1,4 +1,5 @@
 #include "neslib.h"
+#include "map.h"
 #include "score.h"
 
 unsigned int  score;
@@ -41,5 +42,22 @@ unsigned char score_build_update(unsigned char *buf) {
         buf[n++] = digits[i];
 
     score_dirty = 0;
+    return n;
+}
+
+unsigned char score_lives_update(unsigned char *buf, unsigned char n,
+                                 unsigned char lives_count,
+                                 unsigned char *dirty)
+{
+    unsigned int addr;
+    unsigned char i;
+    if (!*dirty) return n;
+    *dirty    = 0;
+    addr      = NTADR_A(LIVES_HUD_COL, LIVES_HUD_ROW);
+    buf[n++]  = (unsigned char)(addr >> 8) | NT_UPD_HORZ;
+    buf[n++]  = (unsigned char)(addr & 0xFF);
+    buf[n++]  = LIVES_HUD_SLOTS;
+    for (i = 1; i <= LIVES_HUD_SLOTS; i++)
+        buf[n++] = (lives_count >= i) ? TILE_PELLET : TILE_EMPTY;
     return n;
 }

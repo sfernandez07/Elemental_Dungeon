@@ -22,6 +22,22 @@
 #define TILE_SLOW_TRAP 0x10   /* trampa de velocidad */
 #define TILE_BOMB      0x11   /* bomba recogible */
 
+/* Tiles de obstáculos por mapa (Fases 1-5) */
+#define TILE_VOLCANO   0x26   /* volcán en pared (bloquea como muro) */
+#define TILE_LAVA      0x27   /* lava activa (bloquea jugador y fantasmas) */
+#define TILE_TREE      0x28   /* árbol: congela jugador 60 frames al pisar */
+#define TILE_WHIRLWIND 0x29   /* remolino: invierte controles 300 frames al pisar */
+#define TILE_BUBBLE    0x2A   /* burbuja: congela jugador 60 frames al pisar */
+#define TILE_LIGHTNING 0x2B   /* rayo: muerte instantánea al pisar */
+#define TILE_LAVA_B    0x48   /* lava frame B (animación de burbujas) */
+#define TILE_LIGHTNING_B 0x49 /* rayo frame B (parpadeo tenue) */
+
+/* Puerta de salida */
+#define TILE_DOOR_CLOSED  0x24   /* visual inicial; en map_state se almacena como TILE_WALL */
+#define TILE_DOOR_OPEN    0x25   /* pasable por el jugador, bloquea a los enemigos */
+#define DOOR_TX  13
+#define DOOR_TY  27
+
 /* Posiciones de los obstáculos (coordenadas de tile) */
 #define TELE_A_TX   1
 #define TELE_A_TY   5
@@ -42,17 +58,24 @@
 #define PX_TO_TX(px)  (((unsigned char)(px) >> 3) - MAP_X_OFFSET)
 #define PY_TO_TY(py)  (((unsigned char)(py) >> 3) - MAP_Y_OFFSET)
 
-/* Datos del laberinto en ROM (28×28 bytes) */
-extern const uint8_t MAP_DATA[MAP_ROWS][MAP_COLS];
-
 /* Estado mutable del laberinto en RAM (puntos ya comidos = TILE_EMPTY) */
 extern unsigned char map_state[MAP_ROWS][MAP_COLS];
 
-/* Contador de puntos y pellets que quedan; 0 = victoria */
+/* Contador de puntos y pellets que quedan */
 extern unsigned char dots_remaining;
+
+/* Estado de la puerta de salida */
+extern unsigned char door_open;    /* 1 = puerta abierta (todos los puntos comidos) */
+extern unsigned char door_dirty;   /* 1 = hay que actualizar el tile en VRAM */
 
 /* Total de puntos del laberinto (precalculado para saber cuándo ganamos) */
 #define MAP_TOTAL_DOTS  244   /* 240 dots + 4 pellets */
+
+/* Número de niveles disponibles */
+#define LEVEL_COUNT     5
+
+/* Nivel actualmente cargado (0–LEVEL_COUNT-1) */
+extern unsigned char current_level;
 
 /* Inicializa map_state copiando MAP_DATA y cuenta dots_remaining. */
 void map_init(void);
@@ -64,5 +87,8 @@ void map_render(void);
 /* Intenta comer el tile en (tx,ty). Devuelve el tipo de tile encontrado
    (TILE_DOT, TILE_PELLET) o TILE_EMPTY si ya estaba vacío/es pared. */
 unsigned char map_eat_dot(unsigned char tx, unsigned char ty);
+
+/* Abre la puerta de salida: actualiza map_state, door_open y door_dirty. */
+void map_open_door(void);
 
 #endif

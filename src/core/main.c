@@ -4,15 +4,17 @@
 #include "player.h"
 #include "ghost.h"
 #include "obstacles.h"
+#include "game.h"
+#include "sound.h"
 
 /* Paleta completa (32 bytes): 16 BG + 16 sprites */
-static const unsigned char PALETTE[32] = {
+static const char PALETTE[32] = {
     /* BG paleta 0: negro | pared azul | punto blanco | pellet/obstacle amarillo */
     0x0F, 0x12, 0x30, 0x28,
     0x0F, 0x12, 0x30, 0x28,
     0x0F, 0x12, 0x30, 0x28,
     0x0F, 0x12, 0x30, 0x28,
-    /* Sprite paleta 0: Pac-Man (amarillo) */
+    /* Sprite paleta 0: Héroe (plata) */
     0x0F, 0x28, 0x16, 0x30,
     /* Sprite paleta 1: fantasma rojo */
     0x0F, 0x16, 0x30, 0x21,
@@ -22,15 +24,14 @@ static const unsigned char PALETTE[32] = {
     0x0F, 0x01, 0x30, 0x21,
 };
 
-/* Buffer VRAM: score(8) + dot(3) + 2×tempwall(6) + bomb(3) + EOF = 21 B max */
-static unsigned char vram_buf[32];
+/* Buffer VRAM: score(8)+vidas(6)+dot(3)+puerta(3)+obstáculos(86)+pellets_blink(12)+EOF = 160 B */
+static unsigned char vram_buf[160];
 
-static void reset_round(Player *p)
-{
-    player_init(p);
-    ghost_init_all();
-    /* Las paredes temporales y la bomba mantienen su estado entre rondas */
-}
+/* Parpadeo de power pellets: posiciones fijas en todos los mapas */
+static const unsigned char PELLET_TX[4] = { 1, 26,  1, 26 };
+static const unsigned char PELLET_TY[4] = { 3,  3, 20, 20 };
+static unsigned char pellet_blink_tmr   = 0;
+static unsigned char pellet_blink_vis   = 1;
 
 void main(void) {
     static Player player;
@@ -38,75 +39,115 @@ void main(void) {
     unsigned char was_powered;
 
     /* ------------------------------------------------------------------ */
-    /* Inicialización — renderizado deshabilitado                         */
+    /* Inicialización — PPU deshabilitada                                  */
     /* ------------------------------------------------------------------ */
     ppu_off();
-
     pal_all(PALETTE);
-
-    vram_adr(NAMETABLE_A);
-    vram_fill(TILE_EMPTY, 0x400);
-
-    map_init();
-    map_render();
-
-    score_init();
-    {
-        unsigned char i;
-        vram_adr(NTADR_A(SCORE_COL, SCORE_ROW));
-        for (i = 0; i < SCORE_DIGITS; i++) vram_put(DIGIT_BASE);
-    }
-
     scroll(0, 0);
+    sound_init();
+    game_init(&player);      /* establece STATE_TITLE                     */
+    game_title_screen();     /* dibuja el título y llama a ppu_on_all()   */
 
-    oam_clear();
-    player_init(&player);
-    ghost_init_all();
-    obstacles_init();
-
-    vram_buf[0] = NT_UPD_EOF;
-    set_vram_update(vram_buf);
-
-    ppu_on_all();
+    /* El resto de la inicialización (mapa, jugador, etc.) ocurre dentro
+       de do_full_restart() cuando el jugador pulsa Start en el título. */
 
     /* ------------------------------------------------------------------ */
     /* Bucle principal — ~60 Hz NTSC                                      */
     /* ------------------------------------------------------------------ */
     while (1) {
+        unsigned char pad_trig = 0;
         was_powered = (player.power_timer > 0);
 
-        /* --- Lógica --- */
         oam_clear();
-        player_update(&player);
-        ghost_update_all(&player);
 
-        if (!was_powered && player.power_timer > 0)
-            ghost_scare_all();
+        /* --- Lógica según estado --- */
+        if (game_state == STATE_PLAYING) {
+            /* Una sola lectura del hardware por frame, igual que Chase.
+               player_update usará pad_state() para reutilizar este resultado. */
+            pad_trig = pad_trigger(0);
+            player_update(&player);
+            ghost_update_all(&player);
 
-        if (pacman_died)
-            reset_round(&player);
-
-        /* --- Dibujo OAM --- */
-        player_draw(&player);
-        sprid = ghost_draw_all(&player, 4);
-        oam_hide_rest(sprid);
-
-        /* --- Buffer VRAM: score + dot + obstáculos --- */
-        n = score_build_update(vram_buf);
-
-        if (dot_eaten) {
-            vram_buf[n++] = (unsigned char)(dot_addr >> 8);
-            vram_buf[n++] = (unsigned char)(dot_addr & 0xFF);
-            vram_buf[n++] = TILE_EMPTY;
-            dot_eaten = 0;
+            if (!was_powered && player.power_timer > 0) {
+                ghost_scare_all();
+                sound_play(SFX_PELLET);
+            }
         }
 
-        /* obstacles_update añade entradas para paredes temporales y bomba */
-        obstacles_update(&player, vram_buf, &n);
+        game_update(&player, pad_trig);   /* gestiona transiciones de estado */
 
-        vram_buf[n] = NT_UPD_EOF;
-        set_vram_update(vram_buf);
+        /* --- Dibujo OAM --- */
+        if (game_state == STATE_PLAYING || game_state == STATE_PAUSED) {
+            player_draw(&player);
+            sprid = ghost_draw_all(&player, 4);
+            oam_hide_rest(sprid);
+        } else if (game_state == STATE_DEAD) {
+            /* Animación de muerte en 3 fases */
+            if (game_death_timer > 60) {
+                /* Fase 1 (90–61): parpadeo rápido cada 4 frames */
+                if (game_death_timer & 0x04)
+                    player_draw(&player);
+            } else if (game_death_timer > 30) {
+                /* Fase 2 (60–31): explosión grande */
+                oam_spr(player.px, player.py, 0x0A, 0x00, 0);
+            } else if (game_death_timer > 0) {
+                /* Fase 3 (30–1): explosión pequeña */
+                oam_spr(player.px, player.py, 0x0B, 0x00, 0);
+            }
+            oam_hide_rest(4);
+        } else {
+            /* TITLE / GAMEOVER / WIN / LEVEL_INTRO: sin sprites */
+            oam_hide_rest(0);
+        }
 
+        /* --- Buffer VRAM (solo mientras el juego está activo) --- */
+        if (game_state == STATE_PLAYING || game_state == STATE_DEAD) {
+            n = score_build_update(vram_buf);
+            n = score_lives_update(vram_buf, n, lives, &lives_dirty);
+
+            if (dot_eaten) {
+                sound_play(SFX_DOT);
+                vram_buf[n++] = (unsigned char)(dot_addr >> 8);
+                vram_buf[n++] = (unsigned char)(dot_addr & 0xFF);
+                vram_buf[n++] = TILE_EMPTY;
+                dot_eaten = 0;
+            }
+
+            if (door_dirty) {
+                unsigned int daddr = NTADR_A(MAP_X_OFFSET + DOOR_TX,
+                                             MAP_Y_OFFSET + DOOR_TY);
+                door_dirty = 0;
+                vram_buf[n++] = (unsigned char)(daddr >> 8);
+                vram_buf[n++] = (unsigned char)(daddr & 0xFF);
+                vram_buf[n++] = TILE_DOOR_OPEN;
+            }
+
+            /* Parpadeo pellets: alternar visible/oculto cada 16 frames */
+            pellet_blink_tmr++;
+            if (pellet_blink_tmr >= 16) {
+                unsigned char pi;
+                pellet_blink_tmr = 0;
+                pellet_blink_vis ^= 1;
+                for (pi = 0; pi < 4; pi++) {
+                    if (map_state[PELLET_TY[pi]][PELLET_TX[pi]] == TILE_PELLET) {
+                        unsigned int paddr = NTADR_A(MAP_X_OFFSET + PELLET_TX[pi],
+                                                     MAP_Y_OFFSET + PELLET_TY[pi]);
+                        vram_buf[n++] = (unsigned char)(paddr >> 8);
+                        vram_buf[n++] = (unsigned char)(paddr & 0xFF);
+                        vram_buf[n++] = pellet_blink_vis ? TILE_PELLET : TILE_EMPTY;
+                    }
+                }
+            }
+
+            if (game_state == STATE_PLAYING)
+                obstacles_update(&player, vram_buf, &n);
+
+            vram_buf[n] = NT_UPD_EOF;
+            set_vram_update(vram_buf);
+        }
+        /* En TITLE/GAMEOVER/WIN, set_vram_update apunta a eof_buf (game.c) */
+
+        sound_update();
         ppu_wait_frame();
     }
 }

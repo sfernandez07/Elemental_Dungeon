@@ -3,6 +3,7 @@
 #include "score.h"
 #include "player.h"
 #include "ghost.h"
+#include "sound.h"
 
 /* ------------------------------------------------------------------ */
 /* Tablas de dirección                                                 */
@@ -33,7 +34,7 @@ typedef struct { unsigned char tx, ty, dir, type, palette; } GhostCfg;
 
 static const GhostCfg CFG[GHOST_COUNT] = {
     {  9, 10, DIR_RIGHT, GHOST_CHASER,    0x01 },   /* rojo,  perseguidor */
-    { 18, 10, DIR_LEFT,  GHOST_CHASER,    0x02 },   /* cian,  perseguidor */
+    { 18, 10, DIR_LEFT,  GHOST_PATROLLER, 0x02 },   /* cian,  patrullero  */
     {  9, 16, DIR_UP,    GHOST_PATROLLER, 0x01 },   /* rojo,  patrullero  */
     { 18, 16, DIR_UP,    GHOST_PATROLLER, 0x02 },   /* cian,  patrullero  */
 };
@@ -43,7 +44,11 @@ static const GhostCfg CFG[GHOST_COUNT] = {
 /* ------------------------------------------------------------------ */
 
 Ghost        ghosts[GHOST_COUNT];
-unsigned char pacman_died;
+unsigned char player_died;
+unsigned char ghost_rage;
+
+static unsigned char ghost_anim_cnt;
+static unsigned char ghost_anim_frm;
 
 /* ------------------------------------------------------------------ */
 /* Helpers internos                                                    */
@@ -54,10 +59,13 @@ unsigned char pacman_died;
 static unsigned char ghost_can_move(unsigned char tx, unsigned char ty,
                                      unsigned char d)
 {
+    unsigned char t;
     signed char ntx = (signed char)tx + GDX[d];
     signed char nty = (signed char)ty + GDY[d];
     if (ntx < 0 || ntx >= MAP_COLS || nty < 0 || nty >= MAP_ROWS) return 0;
-    return map_state[(unsigned char)nty][(unsigned char)ntx] != TILE_WALL;
+    t = map_state[(unsigned char)nty][(unsigned char)ntx];
+    return (t != TILE_WALL && t != TILE_DOOR_OPEN &&
+            t != TILE_LAVA && t != TILE_VOLCANO);
 }
 
 /* Distancia Manhattan entre dos tiles */
@@ -137,7 +145,10 @@ static void ghost_reset(Ghost *g, unsigned char idx)
 void ghost_init_all(void)
 {
     unsigned char i;
-    pacman_died = 0;
+    player_died    = 0;
+    ghost_rage     = 0;
+    ghost_anim_cnt = 0;
+    ghost_anim_frm = 0;
     for (i = 0; i < GHOST_COUNT; i++) ghost_reset(&ghosts[i], i);
 }
 
@@ -182,19 +193,20 @@ static void ghost_update_one(Ghost *g, unsigned char idx,
 
         g->px = (unsigned char)(g->px + GDX[g->dir]);
         g->py = (unsigned char)(g->py + GDY[g->dir]);
-        g->move_cnt = 7;
+        g->move_cnt = ghost_rage ? 5 : 10;
     }
 
-    /* --- Colisión con Pac-Man (distancia < 8 px en ambos ejes) --- */
+    /* --- Colisión con el héroe (distancia < 6 px en ambos ejes) --- */
     dx = (g->px > p->px) ? g->px - p->px : p->px - g->px;
     dy = (g->py > p->py) ? g->py - p->py : p->py - g->py;
-    if (dx < 8 && dy < 8) {
+    if (dx < 6 && dy < 6) {
         if (g->state == GHOST_SCARED) {
             score_add(GHOST_EAT_PTS);
+            sound_play(SFX_GHOST_EAT);
             g->state      = GHOST_DEAD;
             g->dead_timer = GHOST_DEAD_DURATION;
         } else {
-            pacman_died = 1;
+            player_died = 1;
         }
     }
 }
@@ -202,9 +214,18 @@ static void ghost_update_one(Ghost *g, unsigned char idx,
 void ghost_update_all(const Player *p)
 {
     unsigned char i;
-    pacman_died = 0;
+    player_died = 0;
     for (i = 0; i < GHOST_COUNT; i++)
         ghost_update_one(&ghosts[i], i, p);
+}
+
+/* ------------------------------------------------------------------ */
+/* Modo rabia — activa velocidad doble en todos los enemigos           */
+/* ------------------------------------------------------------------ */
+
+void ghost_rage_all(void)
+{
+    ghost_rage = 1;
 }
 
 /* ------------------------------------------------------------------ */
@@ -212,26 +233,34 @@ void ghost_update_all(const Player *p)
 /* ------------------------------------------------------------------ */
 
 /* Sprite tiles (tabla 1):
-   $05 = cuerpo fantasma (color 1)
-   $07 = fantasma asustado (color 1 con paleta 3)
-   Modo parpadeo cuando quedan < 60 frames de power: alterna normal/asustado */
+   $06/$07 = esqueleto normal frame A/B  (color 1, paleta del fantasma)
+   $08/$09 = esqueleto asustado frame A/B (color 1, paleta 3)
+   Frame B de asustado se usa como parpadeo de advertencia (<60 frames restantes) */
 unsigned char ghost_draw_all(const Player *p, unsigned char sprid)
 {
     unsigned char i, tile, attr;
     unsigned char blink;
 
-    /* Fantasma parpadea (normal ↔ asustado) cuando quedan < 1 segundo */
+    /* Avanzar animación de caminar (8 frames por frame) */
+    ghost_anim_cnt++;
+    if (ghost_anim_cnt >= 8) {
+        ghost_anim_cnt = 0;
+        ghost_anim_frm ^= 1;
+    }
+
+    /* Parpadeo de advertencia cuando queda < 1 segundo de power */
     blink = (p->power_timer > 0 && p->power_timer < 60 &&
              (p->power_timer & 0x08));
 
     for (i = 0; i < GHOST_COUNT; i++) {
         if (ghosts[i].state == GHOST_DEAD) continue;
 
-        if (ghosts[i].state == GHOST_SCARED && !blink) {
-            tile = 0x07;    /* sprite asustado */
-            attr = 0x03;    /* paleta 3 */
+        if (ghosts[i].state == GHOST_SCARED) {
+            /* frame B = ojos asomándose (advertencia); frame A = encogido */
+            tile = blink ? 0x09 : 0x08;
+            attr = 0x03;
         } else {
-            tile = 0x05;    /* cuerpo normal */
+            tile = ghost_anim_frm ? 0x07 : 0x06;
             attr = ghosts[i].palette;
         }
 

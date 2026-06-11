@@ -1,0 +1,65 @@
+name: Build & Deploy to itch.io
+
+# Se dispara al hacer push de un tag vX.Y o manualmente desde GitHub UI
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versión a publicar (ej: v1.0). Obligatorio en disparo manual.'
+        required: true
+        default: 'v0.0-dev'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Código fuente ───────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── 2. Toolchain cc65 ─────────────────────────────────────────────
+      - name: Install cc65
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y cc65
+
+      # ── 3. Compilar la ROM ────────────────────────────────────────────
+      - name: Build ROM
+        run: |
+          chmod +x build.sh
+          ./build.sh
+
+      # ── 4. Preparar el paquete web ────────────────────────────────────
+      #   dist/
+      #     index.html              ← emulador EmulatorJS
+      #     elemental_dungeon.nes   ← ROM compilada
+      - name: Prepare web package
+        run: |
+          mkdir -p dist
+          cp web/index.html dist/
+          cp build/elemental_dungeon.nes dist/elemental_dungeon.nes
+
+      # ── 5. Instalar butler (CLI oficial de itch.io) ───────────────────
+      - name: Install butler
+        run: |
+          curl -L -o butler.zip \
+            https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+          unzip butler.zip
+          chmod +x butler
+
+      # ── 6. Publicar en itch.io ────────────────────────────────────────
+      #   Requiere el secreto BUTLER_API_KEY en Settings → Secrets → Actions
+      - name: Deploy to itch.io
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+        run: |
+          VERSION=${{ github.ref_name }}
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION=${{ github.event.inputs.version }}
+          fi
+          ./butler push dist/ sfernandez07/elemental-dungeon:html \
+            --userversion "$VERSION"

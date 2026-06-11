@@ -13,7 +13,7 @@
 #define PLAYER_START_TY  26
 
 /* Duración del modo power-up en frames (~3 s a 60 Hz) */
-#define POWER_DURATION   180
+#define POWER_DURATION   300
 
 typedef struct {
     unsigned char px;           /* posición X en pantalla (píxeles) */
@@ -26,12 +26,14 @@ typedef struct {
     unsigned char power_timer;  /* frames restantes en modo power-up (0=inactivo) */
     unsigned char slow_cnt;     /* paridad para trampa de velocidad (alterna 0/1) */
     unsigned char tele_lock;    /* frames de bloqueo tras teleportarse */
+    unsigned char freeze_timer; /* frames de inmovilización (árbol/burbuja) */
+    unsigned int  ctrl_rev_timer; /* frames con controles invertidos (remolino) */
 } Player;
 
 /* Señales que player_update deja para que main() construya el buffer VRAM */
 extern unsigned char dot_eaten;   /* 1 = hay que borrar dot_addr del nametable */
 extern unsigned int  dot_addr;    /* dirección PPU del tile a borrar */
-extern unsigned char bomb_eaten;  /* 1 = Pac-Man acaba de recoger la bomba */
+extern unsigned char bomb_eaten;  /* 1 = el héroe acaba de recoger la bomba */
 
 void player_init(Player *p);
 void player_update(Player *p);

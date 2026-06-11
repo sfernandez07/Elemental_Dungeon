@@ -21,11 +21,22 @@ extern unsigned int  score;
 /* Flag: 1 si el score cambió y hay que actualizar el nametable */
 extern unsigned char score_dirty;
 
+/* Slots del HUD de vidas (columna 2, fila 0, 3 tiles) */
+#define LIVES_HUD_COL   2
+#define LIVES_HUD_ROW   0
+#define LIVES_HUD_SLOTS 3
+
 void          score_init(void);
 void          score_add(unsigned int pts);
 
 /* Escribe en buf la secuencia de actualización VRAM para el marcador.
    Devuelve el número de bytes escritos (0 si score_dirty == 0). */
 unsigned char score_build_update(unsigned char *buf);
+
+/* Añade la actualización VRAM del HUD de vidas a buf a partir de la posición n.
+   Devuelve la nueva posición n. Limpia *dirty si era 1. */
+unsigned char score_lives_update(unsigned char *buf, unsigned char n,
+                                 unsigned char lives_count,
+                                 unsigned char *dirty);
 
 #endif
