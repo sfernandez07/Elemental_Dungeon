@@ -17,6 +17,9 @@
 /* ================================================================== */
 /* Nivel 0 — Agua (mapa original)                                     */
 /* ================================================================== */
+/* ================================================================== */
+/* Nivel 0 - Agua (mapa clasico simetrico)                              */
+/* ================================================================== */
 static const uint8_t MAP_0[MAP_ROWS][MAP_COLS] = {
 /*col 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27*/
 /*00*/{W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W},
@@ -28,14 +31,14 @@ static const uint8_t MAP_0[MAP_ROWS][MAP_COLS] = {
 /*06*/{W, D, W, W, W, W, D, W, W, D, W, W, W, W, W, W, W, W, D, W, W, D, W, W, W, W, D, W},
 /*07*/{W, D, W, W, W, W, D, W, W, D, W, W, W, W, W, W, W, W, D, W, W, D, W, W, W, W, D, W},
 /*08*/{W, D, D, S, D, D, D, W, W, D, D, D, D, W, W, D, D, D, D, W, W, D, D, D, S, D, D, W},
-/*09*/{W, W, W, W, W, W, D, W, W, W, W, W, E, W, W, E, W, W, W, W, W, D, W, W, W, W, W, W},
-/*10*/{E, E, E, E, W, W, D, W, W, E, E, E, E, E, E, E, E, E, E, W, W, D, W, W, E, E, E, E},
-/*11*/{E, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, E},
-/*12*/{E, E, E, E, W, W, D, E, E, E, W, E, E, E, E, E, E, W, E, E, E, D, W, W, E, E, E, E},
-/*13*/{E, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, E},
+/*09*/{W, W, W, W, W, W, D, W, W, W, W, W, E, W, W, E, W, W, W, W, W, W, D, W, W, W, W, W},
+/*10*/{W, E, E, E, W, W, D, W, W, E, E, E, E, E, E, E, E, E, E, W, W, D, W, W, E, E, E, W},
+/*11*/{W, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, W},
+/*12*/{W, E, E, E, W, W, D, E, E, E, W, E, E, E, E, E, E, W, E, E, E, D, W, W, E, E, E, W},
+/*13*/{W, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, W},
 /*14*/{W, W, W, W, W, W, D, W, W, E, E, E, E, E, E, E, E, E, E, W, W, D, W, W, W, W, W, W},
-/*15*/{E, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, E},
-/*16*/{E, E, E, E, W, W, D, W, W, E, E, E, E, W, W, E, E, E, E, W, W, D, W, W, E, E, E, E},
+/*15*/{W, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, W},
+/*16*/{W, E, E, E, W, W, D, W, W, E, E, E, E, W, W, E, E, E, E, W, W, D, W, W, E, E, E, W},
 /*17*/{W, D, D, D, D, D, D, D, D, D, D, D, B, W, W, D, D, D, D, D, D, D, D, D, D, D, D, W},
 /*18*/{W, D, W, W, W, W, D, W, W, W, W, W, D, W, W, D, W, W, W, W, W, D, W, W, W, W, D, W},
 /*19*/{W, D, W, W, W, W, D, W, W, W, W, W, D, W, W, D, W, W, W, W, W, D, W, W, W, W, D, W},
@@ -46,51 +49,57 @@ static const uint8_t MAP_0[MAP_ROWS][MAP_COLS] = {
 /*24*/{W, D, W, W, W, W, W, W, W, W, W, W, D, W, W, D, W, W, W, W, W, W, W, W, W, W, D, W},
 /*25*/{W, D, W, W, W, W, W, W, W, W, W, W, D, W, W, D, W, W, W, W, W, W, W, W, W, W, D, W},
 /*26*/{W, D, D, D, D, D, BU, D, D, D, D, D, D, D, D, D, D, D, D, D, D, BU, D, D, D, D, D, W},
-/*27*/{W, W, W, W, W, W, W, W, W, W, W, W, W, O, W, W, W, W, W, W, W, W, W, W, W, W, W, W},
+/*27*/{W, W, W, W, W, W, W, W, W, W, W, W, W, O, W, W, W, W, W, W, W, W, W, W, W, W, W, W}
 };
 
 /* ================================================================== */
 /* Nivel 1 — Viento: pasillos abiertos, pocos muros, simétrico        */
 /* ================================================================== */
+/* ================================================================== */
+/* Nivel 1 - Viento (pasillos horizontales abiertos con pilares)        */
+/* ================================================================== */
 static const uint8_t MAP_1[MAP_ROWS][MAP_COLS] = {
 /*col 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27*/
 /*00*/{W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W},
 /*01*/{W, D, D, D, D, D, D, D, D, D, D, D, D, WW, D, D, D, D, D, D, D, D, D, D, D, D, D, W},
-/*02*/{W, D, W, W, D, W, D, W, W, D, W, D, W, D, W, D, W, D, W, D, W, W, D, W, D, W, D, W},
-/*03*/{W, P, W, E, D, W, D, E, W, D, W, E, D, E, W, E, D, W, E, D, W, E, D, W, D, E, P, W},
-/*04*/{W, D, W, W, D, W, D, W, W, D, W, D, W, D, W, D, W, D, W, D, W, W, D, W, D, W, D, W},
+/*02*/{W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, D, W},
+/*03*/{W, P, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, P, W},
+/*04*/{W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, D, W},
 /*05*/{W, T, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, T, W},
-/*06*/{W, D, W, W, D, W, D, W, W, D, W, D, W, D, W, D, W, D, W, D, W, W, D, W, D, W, D, W},
-/*07*/{W, D, W, E, D, W, D, E, W, D, W, E, D, E, D, E, D, W, E, D, W, E, D, W, D, E, D, W},
-/*08*/{W, D, D, S, D, D, D, D, WW, D, D, D, D, D, D, D, D, D, D, WW, D, D, D, D, D, S, D, W},
+/*06*/{W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, D, W},
+/*07*/{W, D, D, D, D, D, D, D, WW, D, D, D, D, D, D, D, D, D, WW, D, D, D, D, D, D, D, D, W},
+/*08*/{W, D, D, S, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, S, D, W},
 /*09*/{W, W, W, W, W, W, D, W, W, W, W, W, E, W, W, E, W, W, W, W, W, W, D, W, W, W, W, W},
-/*10*/{E, E, E, E, W, W, D, W, W, E, E, E, E, E, E, E, E, E, E, W, W, D, W, W, E, E, E, E},
-/*11*/{E, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, E},
-/*12*/{E, E, E, E, W, W, D, E, E, E, W, E, E, E, E, E, E, W, E, E, E, D, W, W, E, E, E, E},
-/*13*/{E, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, E},
+/*10*/{W, E, E, E, W, W, D, W, W, E, E, E, E, E, E, E, E, E, E, W, W, D, W, W, E, E, E, W},
+/*11*/{W, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, W},
+/*12*/{W, E, E, E, W, W, D, E, E, E, W, E, E, E, E, E, E, W, E, E, E, D, W, W, E, E, E, W},
+/*13*/{W, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, W},
 /*14*/{W, W, W, W, W, W, D, W, W, E, E, E, E, E, E, E, E, E, E, W, W, D, W, W, W, W, W, W},
-/*15*/{E, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, E},
-/*16*/{E, E, E, E, W, W, D, W, W, E, E, E, E, W, W, E, E, E, E, W, W, D, W, W, E, E, E, E},
+/*15*/{W, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, W},
+/*16*/{W, E, E, E, W, W, D, W, W, E, E, E, E, W, W, E, E, E, E, W, W, D, W, W, E, E, E, W},
 /*17*/{W, D, D, D, D, D, D, D, D, WW, D, D, B, W, W, D, D, D, D, D, D, D, D, D, D, D, D, W},
-/*18*/{W, D, W, W, D, W, D, W, W, D, W, D, W, D, W, D, W, D, W, D, W, W, D, W, D, W, D, W},
-/*19*/{W, D, W, E, D, W, D, E, W, D, W, E, D, E, D, E, D, W, E, D, W, E, D, W, D, E, D, W},
+/*18*/{W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, W, D, D, W},
+/*19*/{W, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, W},
 /*20*/{W, P, D, D, W, W, D, D, D, D, D, D, D, E, E, D, D, D, D, D, D, D, W, W, D, D, P, W},
 /*21*/{W, W, W, D, W, W, D, W, W, D, W, W, W, W, W, W, W, W, D, W, W, D, W, W, D, W, W, W},
 /*22*/{W, W, W, D, W, W, D, W, W, D, W, W, W, W, W, W, W, W, D, W, W, D, W, W, D, W, W, W},
-/*23*/{W, D, D, S, D, D, D, W, W, D, D, D, D, W, W, D, D, D, D, W, W, D, D, D, S, D, D, W},
-/*24*/{W, D, W, W, W, W, W, W, W, W, W, W, D, W, W, D, W, W, W, W, W, W, W, W, W, W, D, W},
-/*25*/{W, D, W, E, E, E, E, E, E, E, E, D, W, W, W, W, D, E, E, E, E, E, E, E, E, W, D, W},
+/*23*/{W, D, D, S, D, D, D, D, D, D, D, D, D, W, W, D, D, D, D, D, D, D, D, D, D, S, D, W},
+/*24*/{W, D, W, D, W, D, W, D, W, D, W, D, W, W, W, W, D, W, D, W, D, W, D, W, D, W, D, W},
+/*25*/{W, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, W},
 /*26*/{W, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, W},
-/*27*/{W, W, W, W, W, W, W, W, W, W, W, W, W, O, W, W, W, W, W, W, W, W, W, W, W, W, W, W},
+/*27*/{W, W, W, W, W, W, W, W, W, W, W, W, W, O, W, W, W, W, W, W, W, W, W, W, W, W, W, W}
 };
 
 /* ================================================================== */
 /* Nivel 2 — Bosque: laberinto denso, muchas celdas pequeñas          */
 /* ================================================================== */
+/* ================================================================== */
+/* Nivel 2 - Bosque (laberinto denso con muchos recovecos)              */
+/* ================================================================== */
 static const uint8_t MAP_2[MAP_ROWS][MAP_COLS] = {
 /*col 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27*/
 /*00*/{W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W},
-/*01*/{W, D, D, D, W,  R, D, D, W, D, D, D, D, D, D, D, D, D, D, W, D, D,  R, W, D, D, D, W},
+/*01*/{W, D, D, D, W, R, D, D, W, D, D, D, D, D, D, D, D, D, D, W, D, D, R, W, D, D, D, W},
 /*02*/{W, D, W, D, W, D, W, D, W, D, W, W, D, W, W, D, W, W, D, W, D, W, D, W, D, W, D, W},
 /*03*/{W, P, D, D, D, D, W, D, D, D, W, D, D, W, E, W, D, D, W, D, D, D, D, D, D, D, P, W},
 /*04*/{W, W, W, D, W, W, W, W, D, W, W, D, W, W, W, W, D, W, W, D, W, W, W, W, D, W, W, W},
@@ -99,14 +108,14 @@ static const uint8_t MAP_2[MAP_ROWS][MAP_COLS] = {
 /*07*/{W, D, W, D, D, W, D, D, W, D, D, W, D, D, W, D, D, W, D, D, W, D, D, W, D, W, D, W},
 /*08*/{W, D, D, S, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, S, D, W},
 /*09*/{W, W, W, W, W, W, D, W, W, W, W, W, E, W, W, E, W, W, W, W, W, W, D, W, W, W, W, W},
-/*10*/{E, E, E, E, W, W, D, W, W, E, E, E, E, E, E, E, E, E, E, W, W, D, W, W, E, E, E, E},
-/*11*/{E, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, E},
-/*12*/{E, E, E, E, W, W, D, E, E, E, W, E, E, E, E, E, E, W, E, E, E, D, W, W, E, E, E, E},
-/*13*/{E, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, E},
+/*10*/{W, E, E, E, W, W, D, W, W, E, E, E, E, E, E, E, E, E, E, W, W, D, W, W, E, E, E, W},
+/*11*/{W, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, W},
+/*12*/{W, E, E, E, W, W, D, E, E, E, W, E, E, E, E, E, E, W, E, E, E, D, W, W, E, E, E, W},
+/*13*/{W, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, W},
 /*14*/{W, W, W, W, W, W, D, W, W, E, E, E, E, E, E, E, E, E, E, W, W, D, W, W, W, W, W, W},
-/*15*/{E, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, E},
-/*16*/{E, E, E, E, W, W, D, W, W, E, E, E, E, W, W, E, E, E, E, W, W, D, W, W, E, E, E, E},
-/*17*/{W, D, D, D, D,  R, D, D, D, D, D, D, B, W, W, D, D, D, D, D, D, D,  R, D, D, D, D, W},
+/*15*/{W, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, W},
+/*16*/{W, E, E, E, W, W, D, W, W, E, E, E, E, W, W, E, E, E, E, W, W, D, W, W, E, E, E, W},
+/*17*/{W, D, D, D, D, R, D, D, D, D, D, D, B, W, W, D, D, D, D, D, D, D, R, D, D, D, D, W},
 /*18*/{W, D, W, W, D, W, W, D, W, D, D, W, W, D, W, D, W, W, D, D, W, D, W, W, D, W, D, W},
 /*19*/{W, D, W, D, D, W, D, D, W, D, W, D, D, W, E, W, D, D, W, D, D, W, D, D, W, D, D, W},
 /*20*/{W, P, D, D, W, W, D, D, D, D, D, D, D, E, E, D, D, D, D, D, D, D, W, W, D, D, P, W},
@@ -116,15 +125,18 @@ static const uint8_t MAP_2[MAP_ROWS][MAP_COLS] = {
 /*24*/{W, D, W, D, W, W, W, W, W, W, W, D, D, W, W, D, D, W, W, W, W, W, W, D, W, W, D, W},
 /*25*/{W, D, D, D, W, E, E, E, E, E, E, D, W, W, W, W, D, E, E, E, E, E, E, W, D, D, D, W},
 /*26*/{W, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, W},
-/*27*/{W, W, W, W, W, W, W, W, W, W, W, W, W, O, W, W, W, W, W, W, W, W, W, W, W, W, W, W},
+/*27*/{W, W, W, W, W, W, W, W, W, W, W, W, W, O, W, W, W, W, W, W, W, W, W, W, W, W, W, W}
 };
 
 /* ================================================================== */
 /* Nivel 3 — Fuego: anillo exterior, centro abierto, trampas          */
 /* ================================================================== */
+/* ================================================================== */
+/* Nivel 3 - Fuego (camaras conectadas por corredores)                  */
+/* ================================================================== */
 static const uint8_t MAP_3[MAP_ROWS][MAP_COLS] = {
 /*col 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27*/
-/*00*/{W, W, W, W, W, V, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, V, W, W, W, W, W},
+/*00*/{W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W},
 /*01*/{W, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, W},
 /*02*/{W, D, W, W, W, D, W, W, W, D, W, W, D, W, W, D, W, W, D, W, W, W, D, W, W, W, D, W},
 /*03*/{W, P, W, E, E, D, W, E, E, D, E, D, E, E, W, E, E, D, E, E, W, E, D, E, E, W, P, W},
@@ -132,30 +144,33 @@ static const uint8_t MAP_3[MAP_ROWS][MAP_COLS] = {
 /*05*/{W, T, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, T, W},
 /*06*/{W, D, W, W, D, W, D, W, W, D, W, W, D, D, D, D, D, W, W, D, W, D, W, W, D, W, D, W},
 /*07*/{W, D, W, E, D, W, D, E, W, D, W, E, W, E, E, E, W, E, D, W, D, E, W, E, D, W, D, W},
-/*08*/{V, D, S, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, S, W},
+/*08*/{W, D, S, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, S, W},
 /*09*/{W, W, W, W, W, W, D, W, W, W, W, W, E, W, W, E, W, W, W, W, W, W, D, W, W, W, W, W},
-/*10*/{E, E, E, E, W, W, D, W, W, E, E, E, E, E, E, E, E, E, E, W, W, D, W, W, E, E, E, E},
-/*11*/{E, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, E},
-/*12*/{E, E, E, E, W, W, D, E, E, E, W, E, E, E, E, E, E, W, E, E, E, D, W, W, E, E, E, E},
-/*13*/{E, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, E},
+/*10*/{W, E, E, E, W, W, D, W, W, E, E, E, E, E, E, E, E, E, E, W, W, D, W, W, E, E, E, W},
+/*11*/{W, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, W},
+/*12*/{W, E, E, E, W, W, D, E, E, E, W, E, E, E, E, E, E, W, E, E, E, D, W, W, E, E, E, W},
+/*13*/{W, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, W},
 /*14*/{W, W, W, W, W, W, D, W, W, E, E, E, E, E, E, E, E, E, E, W, W, D, W, W, W, W, W, W},
-/*15*/{E, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, E},
-/*16*/{E, E, E, E, W, W, D, W, W, E, E, E, E, W, W, E, E, E, E, W, W, D, W, W, E, E, E, E},
+/*15*/{W, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, W},
+/*16*/{W, E, E, E, W, W, D, W, W, E, E, E, E, W, W, E, E, E, E, W, W, D, W, W, E, E, E, W},
 /*17*/{W, D, D, D, D, D, D, D, D, D, D, D, B, W, W, D, D, D, D, D, D, D, D, D, D, D, D, W},
 /*18*/{W, D, W, W, D, W, D, W, W, D, W, W, D, D, D, D, D, W, W, D, W, D, W, W, D, W, D, W},
 /*19*/{W, D, W, E, D, W, D, E, W, D, W, E, W, E, E, E, W, E, D, W, D, E, W, E, D, W, D, W},
-/*20*/{W, P, D, D, W, W, D, D, D, D, D, D, D, E, E, D, D, D, D, D, D, D, W, W, D, D, P, V},
+/*20*/{W, P, D, D, W, W, D, D, D, D, D, D, D, E, E, D, D, D, D, D, D, D, W, W, D, D, P, W},
 /*21*/{W, W, W, D, W, W, D, W, W, D, W, W, W, W, W, W, W, W, D, W, W, D, W, W, D, W, W, W},
 /*22*/{W, W, W, D, W, W, D, W, W, D, W, W, W, W, W, W, W, W, D, W, W, D, W, W, D, W, W, W},
 /*23*/{W, D, S, D, D, D, D, W, W, D, D, D, D, W, W, D, D, D, D, W, W, D, D, D, D, S, D, W},
 /*24*/{W, D, W, W, W, W, W, W, W, W, W, W, D, W, W, D, W, W, W, W, W, W, W, W, W, W, D, W},
 /*25*/{W, D, W, E, E, E, D, E, D, E, E, E, W, W, W, W, E, E, E, D, E, D, E, E, E, W, D, W},
 /*26*/{W, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, W},
-/*27*/{W, W, W, W, W, W, W, W, W, W, W, W, W, O, W, W, W, W, W, W, W, W, W, W, W, W, W, W},
+/*27*/{W, W, W, W, W, W, W, W, W, W, W, W, W, O, W, W, W, W, W, W, W, W, W, W, W, W, W, W}
 };
 
 /* ================================================================== */
 /* Nivel 4 — Rayo: pasillos en zigzag, teleportadores clave           */
+/* ================================================================== */
+/* ================================================================== */
+/* Nivel 4 - Rayo (patron zigzag con bloques alternados)                */
 /* ================================================================== */
 static const uint8_t MAP_4[MAP_ROWS][MAP_COLS] = {
 /*col 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27*/
@@ -169,13 +184,13 @@ static const uint8_t MAP_4[MAP_ROWS][MAP_COLS] = {
 /*07*/{W, D, W, E, E, W, D, W, E, E, W, D, W, E, D, E, W, D, W, E, E, W, D, W, E, E, D, W},
 /*08*/{W, D, D, S, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, S, D, W},
 /*09*/{W, W, W, W, W, W, D, W, W, W, W, W, E, W, W, E, W, W, W, W, W, W, D, W, W, W, W, W},
-/*10*/{E, E, E, E, W, W, D, W, W, E, E, E, E, E, E, E, E, E, E, W, W, D, W, W, E, E, E, E},
-/*11*/{E, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, E},
-/*12*/{E, E, E, E, W, W, D, E, E, E, W, E, E, E, E, E, E, W, E, E, E, D, W, W, E, E, E, E},
-/*13*/{E, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, E},
+/*10*/{W, E, E, E, W, W, D, W, W, E, E, E, E, E, E, E, E, E, E, W, W, D, W, W, E, E, E, W},
+/*11*/{W, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, W},
+/*12*/{W, E, E, E, W, W, D, E, E, E, W, E, E, E, E, E, E, W, E, E, E, D, W, W, E, E, E, W},
+/*13*/{W, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, W},
 /*14*/{W, W, W, W, W, W, D, W, W, E, E, E, E, E, E, E, E, E, E, W, W, D, W, W, W, W, W, W},
-/*15*/{E, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, E},
-/*16*/{E, E, E, E, W, W, D, W, W, E, E, E, E, W, W, E, E, E, E, W, W, D, W, W, E, E, E, E},
+/*15*/{W, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, W},
+/*16*/{W, E, E, E, W, W, D, W, W, E, E, E, E, W, W, E, E, E, E, W, W, D, W, W, E, E, E, W},
 /*17*/{W, D, D, D, D, D, D, D, D, D, D, D, B, W, W, D, D, D, D, D, D, D, D, D, D, D, D, W},
 /*18*/{W, D, W, W, W, W, D, W, W, W, W, D, W, D, W, D, W, D, W, W, W, W, D, W, W, W, D, W},
 /*19*/{W, D, W, E, E, W, D, W, E, E, W, D, W, E, D, E, W, D, W, E, E, W, D, W, E, E, D, W},
@@ -186,7 +201,7 @@ static const uint8_t MAP_4[MAP_ROWS][MAP_COLS] = {
 /*24*/{W, D, W, W, W, W, W, W, W, W, W, W, D, W, W, D, W, W, W, W, W, W, W, W, W, W, D, W},
 /*25*/{W, D, W, E, E, W, D, D, D, E, E, E, W, W, W, W, E, E, E, D, D, D, W, E, E, W, D, W},
 /*26*/{W, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, W},
-/*27*/{W, W, W, W, W, W, W, W, W, W, W, W, W, O, W, W, W, W, W, W, W, W, W, W, W, W, W, W},
+/*27*/{W, W, W, W, W, W, W, W, W, W, W, W, W, O, W, W, W, W, W, W, W, W, W, W, W, W, W, W}
 };
 
 #undef W
