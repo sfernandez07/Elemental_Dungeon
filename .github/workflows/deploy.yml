@@ -49,7 +49,8 @@ jobs:
           curl -L -o butler.zip \
             https://github.com/itchio/butler/releases/latest/download/butler-linux-amd64.zip
           unzip butler.zip
-          chmod +x butler
+          chmod +x linux-amd64/butler
+          sudo mv linux-amd64/butler /usr/local/bin/butler
 
       # ── 6. Publicar en itch.io ────────────────────────────────────────
       #   Requiere el secreto BUTLER_API_KEY en Settings → Secrets → Actions
@@ -61,5 +62,5 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             VERSION=${{ github.event.inputs.version }}
           fi
-          ./butler push dist/ sfernandez07/elemental-dungeon:html \
+          butler push dist/ sfernandez07/elemental-dungeon:html \
             --userversion "$VERSION"
