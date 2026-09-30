@@ -77,6 +77,12 @@ static void read_input(Player *p)
         buttons = swapped | (buttons & ~(PAD_RIGHT|PAD_LEFT|PAD_UP|PAD_DOWN));
     }
 
+    /* Sin input direccional: detener movimiento en próximo tile */
+    if (!(buttons & (PAD_RIGHT|PAD_LEFT|PAD_UP|PAD_DOWN))) {
+        p->next_dir = DIR_NONE;
+        return;
+    }
+
     /* Truco Chase: dirección actual tiene menor prioridad que las nuevas.
        Se comprueba primero y se elimina para que las demás puedan ganar. */
     cur_bit = (p->dir < 4) ? DIR_TO_PAD[p->dir] : 0;
@@ -156,8 +162,8 @@ void player_update(Player *p)
         if (p->next_dir != DIR_NONE && can_move(tx, ty, p->next_dir))
             p->dir = p->next_dir;
 
-        /* Avanzar si la dirección está libre */
-        if (p->dir != DIR_NONE && can_move(tx, ty, p->dir)) {
+        /* Avanzar solo si hay input activo */
+        if (p->next_dir != DIR_NONE && can_move(tx, ty, p->dir)) {
             p->px = (unsigned char)(p->px + DX[p->dir]);
             p->py = (unsigned char)(p->py + DY[p->dir]);
             p->move_cnt = 7;

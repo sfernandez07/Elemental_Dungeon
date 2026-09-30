@@ -210,7 +210,7 @@ void sound_update(void)
         if (rhy_pos[1] == DR_SIL) {
             WREG(NOI_CTRL, 0x10);    /* silencio noise */
         } else {
-            WREG(NOI_CTRL,   0x1F);  /* vol=15, constant vol */
+            WREG(NOI_CTRL,   0x14);  /* vol=4, constant vol */
             WREG(NOI_PERIOD, rhy_pos[1]);
             WREG(NOI_LEN,    0x08);  /* length index=1 */
         }

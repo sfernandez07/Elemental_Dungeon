@@ -108,17 +108,24 @@ static unsigned char chaser_dir(unsigned char tx, unsigned char ty,
     return best_dir;
 }
 
-/* IA patrullera: right-hand rule (prioridad: gira derecha, recto, gira
-   izquierda, invierte). Produce circuitos consistentes alrededor de paredes. */
+/* IA patrullera: right-hand rule o left-hand rule según use_left.
+   Índices pares usan left-hand para evitar bucles cuadrados en obstáculos
+   aislados; índices impares usan right-hand. */
 static unsigned char patroller_dir(unsigned char tx, unsigned char ty,
-                                    unsigned char cur_dir)
+                                    unsigned char cur_dir, unsigned char use_left)
 {
     unsigned char d;
 
-    d = TURN_R[cur_dir]; if (ghost_can_move(tx, ty, d)) return d;
-    d = cur_dir;          if (ghost_can_move(tx, ty, d)) return d;
-    d = TURN_L[cur_dir]; if (ghost_can_move(tx, ty, d)) return d;
-    return DIR_OPP[cur_dir];   /* último recurso: invertir */
+    if (use_left) {
+        d = TURN_L[cur_dir]; if (ghost_can_move(tx, ty, d)) return d;
+        d = cur_dir;          if (ghost_can_move(tx, ty, d)) return d;
+        d = TURN_R[cur_dir]; if (ghost_can_move(tx, ty, d)) return d;
+    } else {
+        d = TURN_R[cur_dir]; if (ghost_can_move(tx, ty, d)) return d;
+        d = cur_dir;          if (ghost_can_move(tx, ty, d)) return d;
+        d = TURN_L[cur_dir]; if (ghost_can_move(tx, ty, d)) return d;
+    }
+    return DIR_OPP[cur_dir];
 }
 
 /* TX_TO_PX, TY_TO_PY, PX_TO_TX, PY_TO_TY definidos en map.h */
@@ -173,11 +180,19 @@ static void ghost_update_one(Ghost *g, unsigned char idx,
     if (g->state == GHOST_SCARED && p->power_timer == 0)
         g->state = GHOST_NORMAL;
 
-    /* --- Movimiento pixel a pixel --- */
+    /* --- Movimiento pixel a pixel ---
+       Tile = 8 px. Normal: 1 px/frame, move_cnt=7 → 1+7=8 px exactos.
+       Rage:  2 px/frame, move_cnt=6 → 2+3×2=8 px exactos (doble velocidad). */
     if (g->move_cnt > 0) {
-        g->px = (unsigned char)(g->px + GDX[g->dir]);
-        g->py = (unsigned char)(g->py + GDY[g->dir]);
-        g->move_cnt--;
+        if (ghost_rage) {
+            g->px = (unsigned char)(g->px + GDX[g->dir] + GDX[g->dir]);
+            g->py = (unsigned char)(g->py + GDY[g->dir] + GDY[g->dir]);
+            g->move_cnt -= 2;
+        } else {
+            g->px = (unsigned char)(g->px + GDX[g->dir]);
+            g->py = (unsigned char)(g->py + GDY[g->dir]);
+            g->move_cnt--;
+        }
     } else {
         /* Alineado en tile: elegir dirección */
         tx  = PX_TO_TX(g->px);
@@ -189,11 +204,17 @@ static void ghost_update_one(Ghost *g, unsigned char idx,
             g->dir = chaser_dir(tx, ty, g->dir, ptx, pty,
                                  g->state == GHOST_SCARED);
         else
-            g->dir = patroller_dir(tx, ty, g->dir);
+            g->dir = patroller_dir(tx, ty, g->dir, idx % 2 == 0);
 
-        g->px = (unsigned char)(g->px + GDX[g->dir]);
-        g->py = (unsigned char)(g->py + GDY[g->dir]);
-        g->move_cnt = ghost_rage ? 5 : 10;
+        if (ghost_rage) {
+            g->px = (unsigned char)(g->px + GDX[g->dir] + GDX[g->dir]);
+            g->py = (unsigned char)(g->py + GDY[g->dir] + GDY[g->dir]);
+            g->move_cnt = 6;
+        } else {
+            g->px = (unsigned char)(g->px + GDX[g->dir]);
+            g->py = (unsigned char)(g->py + GDY[g->dir]);
+            g->move_cnt = 7;
+        }
     }
 
     /* --- Colisión con el héroe (distancia < 6 px en ambos ejes) --- */
