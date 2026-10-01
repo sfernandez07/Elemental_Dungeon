@@ -70,27 +70,29 @@ static void show_title(void)
     vram_adr(NTADR_A(0, 0));  vram_fill(TILE_WALL, 64);
     vram_adr(NTADR_A(0, 28)); vram_fill(TILE_WALL, 64);
 
-    /* Columnas laterales filas 2-27 */
+    /* Columnas laterales filas 2-27 (col 0 oculta por PPUMASK → borde izq en 1-2, der en 30-31) */
     for (i = 2; i < 28; i++) {
-        vram_adr(NTADR_A(0, i));  vram_put(TILE_WALL);
+        vram_adr(NTADR_A(1,  i)); vram_put(TILE_WALL);
+        vram_adr(NTADR_A(2,  i)); vram_put(TILE_WALL);
+        vram_adr(NTADR_A(30, i)); vram_put(TILE_WALL);
         vram_adr(NTADR_A(31, i)); vram_put(TILE_WALL);
     }
 
     /* Línea de puntos con pellets en esquinas — fila 5 */
-    vram_adr(NTADR_A(1, 5));
+    vram_adr(NTADR_A(3, 5));
     vram_put(TILE_PELLET);
-    for (i = 0; i < 28; i++) vram_put(TILE_DOT);
+    for (i = 0; i < 25; i++) vram_put(TILE_DOT);
     vram_put(TILE_PELLET);
 
     /* Línea de puntos con pellets — fila 22 */
-    vram_adr(NTADR_A(1, 22));
+    vram_adr(NTADR_A(3, 22));
     vram_put(TILE_PELLET);
-    for (i = 0; i < 28; i++) vram_put(TILE_DOT);
+    for (i = 0; i < 25; i++) vram_put(TILE_DOT);
     vram_put(TILE_PELLET);
 
     /* Fila decorativa alternando pellet/punto — fila 8 */
-    vram_adr(NTADR_A(1, 8));
-    for (i = 0; i < 30; i++) vram_put((i & 1) ? TILE_DOT : TILE_PELLET);
+    vram_adr(NTADR_A(3, 8));
+    for (i = 0; i < 27; i++) vram_put((i & 1) ? TILE_DOT : TILE_PELLET);
 
     /* Texto del título centrado */
     draw_text(11, 11, "ELEMENTAL");
@@ -116,19 +118,21 @@ static void show_screen(unsigned char is_win)
     vram_adr(NTADR_A(0, 0));  vram_fill(TILE_WALL, 64);
     vram_adr(NTADR_A(0, 28)); vram_fill(TILE_WALL, 64);
     for (i = 2; i < 28; i++) {
-        vram_adr(NTADR_A(0, i));  vram_put(TILE_WALL);
+        vram_adr(NTADR_A(1,  i)); vram_put(TILE_WALL);
+        vram_adr(NTADR_A(2,  i)); vram_put(TILE_WALL);
+        vram_adr(NTADR_A(30, i)); vram_put(TILE_WALL);
         vram_adr(NTADR_A(31, i)); vram_put(TILE_WALL);
     }
 
     /* Líneas de puntos */
-    vram_adr(NTADR_A(1, 5));
+    vram_adr(NTADR_A(3, 5));
     vram_put(TILE_PELLET);
-    for (i = 0; i < 28; i++) vram_put(TILE_DOT);
+    for (i = 0; i < 25; i++) vram_put(TILE_DOT);
     vram_put(TILE_PELLET);
 
-    vram_adr(NTADR_A(1, 22));
+    vram_adr(NTADR_A(3, 22));
     vram_put(TILE_PELLET);
-    for (i = 0; i < 28; i++) vram_put(TILE_DOT);
+    for (i = 0; i < 25; i++) vram_put(TILE_DOT);
     vram_put(TILE_PELLET);
 
     if (is_win) {
@@ -163,23 +167,23 @@ static void show_level_intro(void)
     ppu_off();
     pal_all(LEVEL_PALETTES[current_level]);
 
-    /* Borde de pared completo + interior vacío */
+    /* Borde de pared completo + interior vacío (cols 1-2 y 30-31 quedan como borde) */
     vram_adr(NAMETABLE_A);
     vram_fill(TILE_WALL, 0x400);
     for (i = 2; i < 28; i++) {
-        vram_adr(NTADR_A(1, i));
-        vram_fill(TILE_EMPTY, 30);
+        vram_adr(NTADR_A(3, i));
+        vram_fill(TILE_EMPTY, 27);
     }
 
     /* Líneas de puntos con pellets en esquinas */
-    vram_adr(NTADR_A(1, 3));
+    vram_adr(NTADR_A(3, 3));
     vram_put(TILE_PELLET);
-    for (i = 0; i < 28; i++) vram_put(TILE_DOT);
+    for (i = 0; i < 25; i++) vram_put(TILE_DOT);
     vram_put(TILE_PELLET);
 
-    vram_adr(NTADR_A(1, 26));
+    vram_adr(NTADR_A(3, 26));
     vram_put(TILE_PELLET);
-    for (i = 0; i < 28; i++) vram_put(TILE_DOT);
+    for (i = 0; i < 25; i++) vram_put(TILE_DOT);
     vram_put(TILE_PELLET);
 
     /* Bloque de símbolo temático: 10 ancho × 4 filas, centrado */
@@ -259,18 +263,17 @@ static void level_load(Player *p, unsigned char reset_score)
     ppu_on_all();
 }
 
-static void do_next_level(Player *p)
-{
-    level_load(p, 0);
-}
 
 static void do_full_restart(Player *p)
 {
     current_level = 0;
     lives         = LIVES_INITIAL;
     sound_init();
-    level_load(p, 1);
     bgm_start();
+    show_level_intro();
+    level_intro_timer = LEVEL_INTRO_DURATION;
+    game_state        = STATE_LEVEL_INTRO;
+    (void)p;
 }
 
 /* ------------------------------------------------------------------ */
@@ -340,7 +343,7 @@ void game_update(Player *p, unsigned char pad_trig)
 
     case STATE_LEVEL_INTRO:
         if ((pad_trigger(0) & PAD_START) || level_intro_timer == 0) {
-            do_next_level(p);
+            level_load(p, current_level == 0 ? 1 : 0);
         } else {
             level_intro_timer--;
         }
