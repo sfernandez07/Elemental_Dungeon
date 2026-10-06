@@ -18,7 +18,11 @@ unsigned char lives_dirty;
 unsigned char game_death_timer;
 
 static unsigned char level_intro_timer;
+static unsigned char title_cheat_step;
 static unsigned char eof_buf[1];
+
+/* ← ← → → ↑ ↓ ↑ ↓  (PAD_LEFT=0x02, PAD_RIGHT=0x01, PAD_UP=0x08, PAD_DOWN=0x04) */
+static const unsigned char TITLE_CHEAT[8] = {0x02, 0x02, 0x01, 0x01, 0x08, 0x04, 0x08, 0x04};
 
 /* ------------------------------------------------------------------ */
 /* Paletas por nivel (BG×4 subpaletas + sprites fijos)                */
@@ -333,16 +337,14 @@ void game_update(Player *p, unsigned char pad_trig)
         break;
 
     case STATE_PAUSED:
-        /* player_update no se llama en estos estados: pad_trigger hace
-           la única lectura del hardware de este frame (estilo Chase). */
-        if (pad_trigger(0) & PAD_START) {
+        if (pad_trig & PAD_START) {
             pause_overlay(0);
             game_state = STATE_PLAYING;
         }
         break;
 
     case STATE_LEVEL_INTRO:
-        if ((pad_trigger(0) & PAD_START) || level_intro_timer == 0) {
+        if ((pad_trig & PAD_START) || level_intro_timer == 0) {
             level_load(p, current_level == 0 ? 1 : 0);
         } else {
             level_intro_timer--;
@@ -371,16 +373,30 @@ void game_update(Player *p, unsigned char pad_trig)
 
     case STATE_GAMEOVER:
     case STATE_WIN:
-        if (pad_trigger(0) & PAD_START) {
+        if (pad_trig & PAD_START) {
             show_title();
             game_state = STATE_TITLE;
         }
         break;
 
-    case STATE_TITLE:
-        if (pad_trigger(0) & PAD_START)
+    case STATE_TITLE: {
+        if (pad_trig) {
+            if (pad_trig == TITLE_CHEAT[title_cheat_step]) {
+                title_cheat_step++;
+                if (title_cheat_step == 8) {
+                    title_cheat_step = 0;
+                    show_screen(1);
+                    game_state = STATE_WIN;
+                    break;
+                }
+            } else {
+                title_cheat_step = (pad_trig == TITLE_CHEAT[0]) ? 1 : 0;
+            }
+        }
+        if (pad_trig & PAD_START)
             do_full_restart(p);
         break;
+    }
     }
 }
 

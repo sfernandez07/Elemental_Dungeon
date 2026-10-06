@@ -61,10 +61,9 @@ void main(void) {
         oam_clear();
 
         /* --- Lógica según estado --- */
+        pad_trig = pad_trigger(0);   /* una sola lectura por frame en todos los estados */
+
         if (game_state == STATE_PLAYING) {
-            /* Una sola lectura del hardware por frame, igual que Chase.
-               player_update usará pad_state() para reutilizar este resultado. */
-            pad_trig = pad_trigger(0);
             player_update(&player);
             ghost_update_all(&player);
 
