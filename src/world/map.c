@@ -136,7 +136,7 @@ static const uint8_t MAP_2[MAP_ROWS][MAP_COLS] = {
 /* ================================================================== */
 static const uint8_t MAP_3[MAP_ROWS][MAP_COLS] = {
 /*col 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27*/
-/*00*/{W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W},
+/*00*/{W, W, W, W, W, V, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, V, W, W, W, W, W},
 /*01*/{W, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, W},
 /*02*/{W, D, W, W, W, D, W, W, W, D, W, W, D, W, W, D, W, W, D, W, W, W, D, W, W, W, D, W},
 /*03*/{W, P, W, E, E, D, W, E, E, D, E, D, E, E, W, E, E, D, E, E, W, E, D, E, E, W, P, W},
@@ -144,7 +144,7 @@ static const uint8_t MAP_3[MAP_ROWS][MAP_COLS] = {
 /*05*/{W, T, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, T, W},
 /*06*/{W, D, W, W, D, W, D, W, W, D, W, W, D, D, D, D, D, W, W, D, W, D, W, W, D, W, D, W},
 /*07*/{W, D, W, E, D, W, D, E, W, D, W, E, W, E, E, E, W, E, D, W, D, E, W, E, D, W, D, W},
-/*08*/{W, D, S, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, S, W},
+/*08*/{V, D, S, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, D, S, W},
 /*09*/{W, W, W, W, W, W, D, W, W, W, W, W, E, W, W, E, W, W, W, W, W, W, D, W, W, W, W, W},
 /*10*/{W, E, E, E, W, W, D, W, W, E, E, E, E, E, E, E, E, E, E, W, W, D, W, W, E, E, E, W},
 /*11*/{W, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, W},
@@ -156,7 +156,7 @@ static const uint8_t MAP_3[MAP_ROWS][MAP_COLS] = {
 /*17*/{W, D, D, D, D, D, D, D, D, D, D, D, B, W, W, D, D, D, D, D, D, D, D, D, D, D, D, W},
 /*18*/{W, D, W, W, D, W, D, W, W, D, W, W, D, D, D, D, D, W, W, D, W, D, W, W, D, W, D, W},
 /*19*/{W, D, W, E, D, W, D, E, W, D, W, E, W, E, E, E, W, E, D, W, D, E, W, E, D, W, D, W},
-/*20*/{W, P, D, D, W, W, D, D, D, D, D, D, D, E, E, D, D, D, D, D, D, D, W, W, D, D, P, W},
+/*20*/{W, P, D, D, W, W, D, D, D, D, D, D, D, E, E, D, D, D, D, D, D, D, W, W, D, D, P, V},
 /*21*/{W, W, W, D, W, W, D, W, W, D, W, W, W, W, W, W, W, W, D, W, W, D, W, W, D, W, W, W},
 /*22*/{W, W, W, D, W, W, D, W, W, D, W, W, W, W, W, W, W, W, D, W, W, D, W, W, D, W, W, W},
 /*23*/{W, D, S, D, D, D, D, W, W, D, D, D, D, W, W, D, D, D, D, W, W, D, D, D, D, S, D, W},
@@ -227,7 +227,7 @@ static const uint8_t (* const LEVELS[LEVEL_COUNT])[MAP_COLS] = {
 /* ------------------------------------------------------------------ */
 
 unsigned char map_state[MAP_ROWS][MAP_COLS];
-unsigned char dots_remaining;
+unsigned int  dots_remaining;   /* 16 bits: los niveles 2-5 tienen más de 255 puntos */
 unsigned char door_open;
 unsigned char door_dirty;
 unsigned char current_level;

@@ -62,7 +62,7 @@
 extern unsigned char map_state[MAP_ROWS][MAP_COLS];
 
 /* Contador de puntos y pellets que quedan */
-extern unsigned char dots_remaining;
+extern unsigned int  dots_remaining;
 
 /* Estado de la puerta de salida */
 extern unsigned char door_open;    /* 1 = puerta abierta (todos los puntos comidos) */

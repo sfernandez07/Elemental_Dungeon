@@ -12,7 +12,7 @@
 #define PLAYER_START_TX  13
 #define PLAYER_START_TY  26
 
-/* Duración del modo power-up en frames (~3 s a 60 Hz) */
+/* Duración del modo power-up en frames (5 s a 60 Hz) */
 #define POWER_DURATION   300
 
 typedef struct {
@@ -23,7 +23,7 @@ typedef struct {
     unsigned char move_cnt;     /* píxeles restantes hasta el siguiente tile */
     unsigned char anim_frm;     /* frame de animación: 0=boca abierta, 1=cerrada */
     unsigned char anim_cnt;     /* contador de frames para animación */
-    unsigned char power_timer;  /* frames restantes en modo power-up (0=inactivo) */
+    unsigned int  power_timer;  /* frames restantes en modo power-up (0=inactivo); 16 bits: 300 no cabe en 8 */
     unsigned char slow_cnt;     /* paridad para trampa de velocidad (alterna 0/1) */
     unsigned char tele_lock;    /* frames de bloqueo tras teleportarse */
     unsigned char freeze_timer; /* frames de inmovilización (árbol/burbuja) */

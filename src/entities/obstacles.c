@@ -23,7 +23,7 @@ static const unsigned char VOL_TY[VOLCANO_COUNT]  = {  0,  0,  8, 20 };
 /* DIR_DOWN=3, DIR_RIGHT=0 corrected: RIGHT=0,LEFT=1,UP=2,DOWN=3 */
 static const unsigned char VOL_DIR[VOLCANO_COUNT] = {  3,  3,  0,  1 };
 
-static unsigned char vol_dormant[VOLCANO_COUNT];
+static unsigned int  vol_dormant[VOLCANO_COUNT];   /* 16 bits: 300–599 frames no caben en 8 */
 static unsigned char lava_slot_vol[LAVA_SLOT_COUNT]; /* 0xFF = vacío */
 static unsigned char lava_timer[LAVA_SLOT_COUNT];
 /* Backup de tiles: máx 28 tiles por fila/columna */
@@ -38,6 +38,7 @@ static unsigned char lightning_ty;
 static unsigned char lightning_duration;
 static unsigned char lightning_anim_cnt;
 static unsigned char lightning_anim_frm;
+static unsigned char lightning_under;   /* tile que tapa el rayo (DOT o EMPTY), se restaura al apagarse */
 
 /* Posiciones de las paredes temporales */
 static const unsigned char TW_TX[TEMPWALL_COUNT] = { TEMPWALL_TX0, TEMPWALL_TX1 };
@@ -72,7 +73,7 @@ void obstacles_init(void)
     /* Volcanes */
     lava_active_count = 0;
     for (i = 0; i < VOLCANO_COUNT; i++)
-        vol_dormant[i] = (unsigned char)(VOLCANO_DORMANT_MIN + (rand8() % VOLCANO_DORMANT_RNG));
+        vol_dormant[i] = VOLCANO_DORMANT_MIN + (rand16() % VOLCANO_DORMANT_RNG);
     for (i = 0; i < LAVA_SLOT_COUNT; i++) {
         lava_slot_vol[i] = 0xFF;
         lava_timer[i]    = 0;
@@ -112,8 +113,7 @@ static void volcano_update(unsigned char *buf, unsigned char *plen)
         /* Erupcionar si hay slot libre */
         if (lava_active_count >= LAVA_SLOT_COUNT) {
             /* Reiniciar temporizador y esperar */
-            vol_dormant[i] = (unsigned char)(VOLCANO_DORMANT_MIN +
-                              (rand8() % VOLCANO_DORMANT_RNG));
+            vol_dormant[i] = VOLCANO_DORMANT_MIN + (rand16() % VOLCANO_DORMANT_RNG);
             continue;
         }
         /* Buscar slot vacío */
@@ -150,8 +150,7 @@ static void volcano_update(unsigned char *buf, unsigned char *plen)
                 }
             }
         }
-        vol_dormant[i] = (unsigned char)(VOLCANO_DORMANT_MIN +
-                          (rand8() % VOLCANO_DORMANT_RNG));
+        vol_dormant[i] = VOLCANO_DORMANT_MIN + (rand16() % VOLCANO_DORMANT_RNG);
     }
 
     /* Slots activos: decrementar timer y restaurar cuando expiren */
@@ -209,10 +208,11 @@ static void lightning_update(unsigned char *buf, unsigned char *plen)
         if (lightning_duration > 0) {
             lightning_duration--;
         } else {
-            /* Borrar rayo */
-            map_state[lightning_ty][lightning_tx] = TILE_EMPTY;
+            /* Borrar rayo restaurando lo que tapaba: si era un punto y se
+               borrase, dots_remaining nunca llegaría a 0 y la puerta no se abriría. */
+            map_state[lightning_ty][lightning_tx] = lightning_under;
             addr = NTADR_A(MAP_X_OFFSET + lightning_tx, MAP_Y_OFFSET + lightning_ty);
-            vram_buf_put(buf, plen, addr, TILE_EMPTY);
+            vram_buf_put(buf, plen, addr, lightning_under);
             lightning_active = 0;
             lightning_spawn_timer = (unsigned int)(LIGHTNING_SPAWN_MIN +
                                     (rand8() % LIGHTNING_SPAWN_RNG));
@@ -226,6 +226,7 @@ static void lightning_update(unsigned char *buf, unsigned char *plen)
             lty = (unsigned char)((rand8() % 26) + 1);
             if (map_state[lty][ltx] == TILE_DOT ||
                 map_state[lty][ltx] == TILE_EMPTY) {
+                lightning_under     = map_state[lty][ltx];
                 map_state[lty][ltx] = TILE_LIGHTNING;
                 addr = NTADR_A(MAP_X_OFFSET + ltx, MAP_Y_OFFSET + lty);
                 vram_buf_put(buf, plen, addr, TILE_LIGHTNING);
