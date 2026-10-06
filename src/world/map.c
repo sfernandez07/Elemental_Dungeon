@@ -238,19 +238,20 @@ unsigned char current_level;
 
 void map_init(void)
 {
-    const uint8_t (*src)[MAP_COLS] = LEVELS[current_level];
-    unsigned char r, c;
+    const unsigned char *p;
+    unsigned int n;
 
     dots_remaining = 0;
     door_open  = 0;
     door_dirty = 0;
 
-    for (r = 0; r < MAP_ROWS; r++) {
-        for (c = 0; c < MAP_COLS; c++) {
-            map_state[r][c] = src[r][c];
-            if (src[r][c] == TILE_DOT || src[r][c] == TILE_PELLET)
-                dots_remaining++;
-        }
+    /* Copia y recuento lineales: indexar [r][c] obliga a cc65 a multiplicar
+       en cada acceso y la carga del nivel tardaba ~45 frames. */
+    memcpy(map_state, (void *)LEVELS[current_level], sizeof(map_state));
+    p = &map_state[0][0];
+    for (n = MAP_ROWS * MAP_COLS; n != 0; --n, ++p) {
+        if (*p == TILE_DOT || *p == TILE_PELLET)
+            dots_remaining++;
     }
     /* La puerta se bloquea como pared hasta que se abra */
     map_state[DOOR_TY][DOOR_TX] = TILE_WALL;

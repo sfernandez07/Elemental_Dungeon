@@ -265,6 +265,10 @@ static void level_load(Player *p, unsigned char reset_score)
     eof_buf[0] = NT_UPD_EOF;
     set_vram_update(eof_buf);
     ppu_on_all();
+
+    /* Descarta un Start pulsado durante la carga: si no, el primer frame de
+       juego lo vería como pulsación nueva y entraría directamente en pausa. */
+    pad_trigger(0);
 }
 
 

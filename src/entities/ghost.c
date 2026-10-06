@@ -184,7 +184,9 @@ static void ghost_update_one(Ghost *g, unsigned char idx,
        Tile = 8 px. Normal: 1 px/frame, move_cnt=7 → 1+7=8 px exactos.
        Rage:  2 px/frame, move_cnt=6 → 2+3×2=8 px exactos (doble velocidad). */
     if (g->move_cnt > 0) {
-        if (ghost_rage) {
+        /* Con move_cnt impar (rabia activada o giro a mitad de tile) el último
+           paso es de 1 px para no desbordar move_cnt y quedar alineado. */
+        if (ghost_rage && g->move_cnt >= 2) {
             g->px = (unsigned char)(g->px + GDX[g->dir] + GDX[g->dir]);
             g->py = (unsigned char)(g->py + GDY[g->dir] + GDY[g->dir]);
             g->move_cnt -= 2;
@@ -300,8 +302,12 @@ void ghost_scare_all(void)
     for (i = 0; i < GHOST_COUNT; i++) {
         if (ghosts[i].state == GHOST_NORMAL) {
             ghosts[i].state = GHOST_SCARED;
-            /* Invertir dirección de marcha */
+            /* Invertir dirección de marcha. Si está a mitad de tile, lo que
+               queda por recorrer es la vuelta al tile de origen: 8 - move_cnt
+               (px avanzado + move_cnt = 8 siempre). */
             ghosts[i].dir   = DIR_OPP[ghosts[i].dir];
+            if (ghosts[i].move_cnt > 0)
+                ghosts[i].move_cnt = 8 - ghosts[i].move_cnt;
         }
     }
 }
