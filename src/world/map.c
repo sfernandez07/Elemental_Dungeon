@@ -116,7 +116,7 @@ static const uint8_t MAP_2[MAP_ROWS][MAP_COLS] = {
 /*15*/{W, E, E, E, W, W, D, W, W, E, W, W, W, W, W, W, W, W, E, W, W, D, W, W, E, E, E, W},
 /*16*/{W, E, E, E, W, W, D, W, W, E, E, E, E, W, W, E, E, E, E, W, W, D, W, W, E, E, E, W},
 /*17*/{W, D, D, D, D, R, D, D, D, D, D, D, B, W, W, D, D, D, D, D, D, D, R, D, D, D, D, W},
-/*18*/{W, D, W, W, D, W, W, D, W, D, D, W, W, D, W, D, W, W, D, D, W, D, W, W, D, W, D, W},
+/*18*/{W, D, W, W, D, W, W, D, W, D, D, W, W, D, D, D, W, W, D, D, W, D, W, D, D, W, D, W},
 /*19*/{W, D, W, D, D, W, D, D, W, D, W, D, D, W, E, W, D, D, W, D, D, W, D, D, W, D, D, W},
 /*20*/{W, P, D, D, W, W, D, D, D, D, D, D, D, E, E, D, D, D, D, D, D, D, W, W, D, D, P, W},
 /*21*/{W, W, W, D, W, W, D, W, W, D, W, W, W, W, W, W, W, W, D, W, W, D, W, W, D, W, W, W},
