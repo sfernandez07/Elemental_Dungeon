@@ -18,7 +18,6 @@
 
 extern unsigned char game_state;
 extern unsigned char lives;
-extern unsigned char lives_dirty;
 extern unsigned char game_death_timer;
 
 /* Inicializa el estado global del juego (llamar con PPU habilitada). */

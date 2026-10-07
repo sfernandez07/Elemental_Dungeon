@@ -1,6 +1,5 @@
 #include "neslib.h"
 #include "map.h"
-#include "score.h"
 #include "player.h"
 #include "ghost.h"
 #include "obstacles.h"
@@ -24,7 +23,8 @@ static const char PALETTE[32] = {
     0x0F, 0x01, 0x30, 0x21,
 };
 
-/* Buffer VRAM: score(8)+vidas(6)+dot(3)+puerta(3)+obstáculos(86)+pellets_blink(12)+EOF = 160 B */
+/* Buffer VRAM (160 B). Peor caso por frame: punto(3) + puerta(3) + parpadeo de pellets(12)
+   + obstáculos(87: una fila de lava 78, paredes temporales 6, bomba 3) + EOF(1) = 106 B */
 static unsigned char vram_buf[160];
 
 /* Parpadeo de power pellets: posiciones fijas en todos los mapas */
@@ -52,7 +52,8 @@ void main(void) {
        de do_full_restart() cuando el jugador pulsa Start en el título. */
 
     /* ------------------------------------------------------------------ */
-    /* Bucle principal — ~60 Hz NTSC                                      */
+    /* Bucle principal — lógica a 50 Hz: en NTSC, ppu_wait_frame() salta  */
+    /* 1 de cada 6 frames para igualar la velocidad de PAL                */
     /* ------------------------------------------------------------------ */
     while (1) {
         unsigned char pad_trig = 0;
@@ -63,7 +64,9 @@ void main(void) {
         /* --- Lógica según estado --- */
         pad_trig = pad_trigger(0);   /* una sola lectura por frame en todos los estados */
 
-        if (game_state == STATE_PLAYING) {
+        /* Si este frame se pausa, no se mueve nada: el buffer VRAM no se
+           construye en pausa y un punto o la bomba recogidos se perderían. */
+        if (game_state == STATE_PLAYING && !(pad_trig & PAD_START)) {
             player_update(&player);
             ghost_update_all(&player);
 
@@ -101,8 +104,7 @@ void main(void) {
 
         /* --- Buffer VRAM (solo mientras el juego está activo) --- */
         if (game_state == STATE_PLAYING || game_state == STATE_DEAD) {
-            n = score_build_update(vram_buf);
-            n = score_lives_update(vram_buf, n, lives, &lives_dirty);
+            n = 0;
 
             if (dot_eaten) {
                 sound_play(SFX_DOT);

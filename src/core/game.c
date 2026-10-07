@@ -14,7 +14,6 @@
 
 unsigned char game_state;
 unsigned char lives;
-unsigned char lives_dirty;
 unsigned char game_death_timer;
 
 static unsigned char level_intro_timer;
@@ -229,11 +228,9 @@ static void pause_overlay(unsigned char show)
 }
 
 /* Renderiza el nivel actual en RAM con PPU apagada y arranca el juego.
-   reset_score=1 → reinicia marcador y lo dibuja; 0 → solo marca dirty. */
+   reset_score=1 → pone la puntuación a 0 (primer nivel de la partida). */
 static void level_load(Player *p, unsigned char reset_score)
 {
-    unsigned char i;
-
     ppu_off();
     pal_all(LEVEL_PALETTES[current_level]);
     vram_adr(NAMETABLE_A);
@@ -242,16 +239,8 @@ static void level_load(Player *p, unsigned char reset_score)
     map_init();
     map_render();
 
-    score_dirty = 1;
-    if (reset_score) {
+    if (reset_score)
         score_init();
-        vram_adr(NTADR_A(SCORE_COL, SCORE_ROW));
-        for (i = 0; i < SCORE_DIGITS; i++) vram_put(DIGIT_BASE);
-    }
-
-    vram_adr(NTADR_A(2, 0));
-    for (i = 0; i < lives; i++)             vram_put(TILE_PELLET);
-    for (i = lives; i < LIVES_INITIAL; i++) vram_put(TILE_EMPTY);
 
     scroll(0, 0);
     player_init(p);
@@ -260,7 +249,6 @@ static void level_load(Player *p, unsigned char reset_score)
 
     game_state       = STATE_PLAYING;
     game_death_timer = 0;
-    lives_dirty      = 0;
 
     eof_buf[0] = NT_UPD_EOF;
     set_vram_update(eof_buf);
@@ -292,7 +280,6 @@ void game_init(Player *p)
 {
     game_state        = STATE_TITLE;
     lives             = LIVES_INITIAL;
-    lives_dirty       = 0;
     game_death_timer  = 0;
     level_intro_timer = 0;
     current_level     = 0;
@@ -361,7 +348,6 @@ void game_update(Player *p, unsigned char pad_trig)
             break;
         }
         if (lives > 0) lives--;
-        lives_dirty = 1;
 
         if (lives == 0) {
             show_screen(0);

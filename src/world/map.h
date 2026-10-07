@@ -68,9 +68,6 @@ extern unsigned int  dots_remaining;
 extern unsigned char door_open;    /* 1 = puerta abierta (todos los puntos comidos) */
 extern unsigned char door_dirty;   /* 1 = hay que actualizar el tile en VRAM */
 
-/* Total de puntos del laberinto (precalculado para saber cuándo ganamos) */
-#define MAP_TOTAL_DOTS  244   /* 240 dots + 4 pellets */
-
 /* Número de niveles disponibles */
 #define LEVEL_COUNT     5
 

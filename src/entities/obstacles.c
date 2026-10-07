@@ -13,7 +13,7 @@
 static unsigned char tempwall_timer;
 static unsigned char tempwall_active;
 
-static unsigned char bomb_respawn;
+static unsigned int  bomb_respawn;   /* 16 bits: 600 frames no caben en 8 */
 
 /* ---- Volcanes (MAP_3) ---- */
 
@@ -96,6 +96,11 @@ static void volcano_update(unsigned char *buf, unsigned char *plen)
     unsigned char i, s, j;
     unsigned char tx, ty, t;
     unsigned int addr;
+    /* Como mucho una erupción o una restauración por frame: una fila de lava
+       ocupa hasta 78 bytes del buffer VRAM (160) y dos en el mismo frame, junto
+       al marcador y el parpadeo de pellets, lo desbordarían. La operación que
+       no se hace queda con su temporizador a 0 y se ejecuta el frame siguiente. */
+    unsigned char wrote = 0;
 
     /* Volcanes inactivos: decrementar dormancy */
     for (i = 0; i < VOLCANO_COUNT; i++) {
@@ -116,6 +121,7 @@ static void volcano_update(unsigned char *buf, unsigned char *plen)
             vol_dormant[i] = VOLCANO_DORMANT_MIN + (rand16() % VOLCANO_DORMANT_RNG);
             continue;
         }
+        if (wrote) continue;
         /* Buscar slot vacío */
         for (s = 0; s < LAVA_SLOT_COUNT; s++) {
             if (lava_slot_vol[s] == 0xFF) break;
@@ -123,6 +129,7 @@ static void volcano_update(unsigned char *buf, unsigned char *plen)
         lava_slot_vol[s] = i;
         lava_timer[s]    = LAVA_DURATION;
         lava_active_count++;
+        wrote = 1;
 
         /* Rellenar fila o columna con lava */
         if (VOL_DIR[i] == 3 || VOL_DIR[i] == 2) {
@@ -160,6 +167,8 @@ static void volcano_update(unsigned char *buf, unsigned char *plen)
             lava_timer[s]--;
             continue;
         }
+        if (wrote) continue;
+        wrote = 1;
         /* Restaurar */
         i = lava_slot_vol[s];
         if (VOL_DIR[i] == 3 || VOL_DIR[i] == 2) {
